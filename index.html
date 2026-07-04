@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>SIMI RUN - Ultra Pro Hybrid GTA Edition</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <div id="loaderOverlay">
+        <div class="loader-text" id="loaderText">BOOTING NEON CORE... 0%</div>
+        <div class="loader-bar-container">
+            <div class="loader-bar-fill" id="loaderBar"></div>
+        </div>
+    </div>
+
+    <div id="hud">
+        <div id="scoreContainer">Score: <span id="scoreText">0</span></div>
+        <div id="distanceText">0 m</div>
+        <div id="comboContainer">🔥 COMBO X<span id="comboText">1</span></div>
+        <div id="difficultyBadge">SPEED: LVL 1</div>
+        <div id="driveStateBadge">🚶 FOOT ROAMING</div>
+        <div id="copAlertBadge">🚨 CHASE INTENSE</div>
+        <div id="multiplayerStatus">🌐 Solo Mode</div>
+        <div id="activePowerups"></div>
+    </div>
+    <div id="weatherAlert" style="display: none;">🚨 NIGHT STORM ACTIVE</div>
+
+    <button id="pauseBtn">PAUSE</button>
+
+    <div id="minimapContainer" style="position: absolute; bottom: 20px; left: 20px; width: 140px; height: 140px; background: rgba(0,0,0,0.6); border: 2px solid #00f3ff; border-radius: 50%; overflow: hidden; z-index: 15; box-shadow: 0 0 10px rgba(0,243,255,0.3);">
+        <div id="minimapContent" style="position: absolute; width: 1000px; height: 1000px; left: 70px; top: 70px; transition: transform 0.05s linear;">
+            <div style="position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; background: #ff0055; border-radius: 50%; box-shadow: 0 0 5px #ff0055; z-index: 20;"></div>
+            <div id="missionBlip" style="position: absolute; width: 6px; height: 6px; background: #ffd700; border-radius: 50%; z-index: 18;"></div>
+        </div>
+    </div>
+
+    <div id="controls">
+      <button id="left">⬅️</button>
+      <button id="jump">⬆️</button>
+      <button id="right">➡️</button>
+      <button id="shoot">🔫</button>
+      <button id="acc">🚀</button>
+      <button id="exitCar">🚪</button>
+    </div>
+
+    <div id="startMenu" class="menu-overlay" style="display: flex;">
+        <button id="themeToggle">🌙</button>
+
+        <h1 style="margin-top: 40px;">SIMI RUN <span style="font-size:18px; color:#00f3ff; display:block; margin-top:5px;">ULTIMATE GTA HYBRID</span></h1>
+        <div class="wallet-display">🪙 Coins: <span id="menuWallet">0</span></div>
+        <div id="firebaseStatus" style="display: none;">🔥 Firebase: Dynamic Client Mapping</div>
+
+        <button id="googleAuthBtn" class="auth-btn" style="display: none;">Sign in with Google</button>
+        
+        <div class="nav-tabs">
+            <button class="tab-btn active">PLAY</button>
+            <button class="tab-btn">SHOP / AMMO</button>
+            <button class="tab-btn">MATRIX</button>
+        </div>
+
+        <div id="play-panel" class="tab-content active">
+            <div class="shop-section">
+                <h3>🌐 LIVE WEB MULTIPLAYER MATRIX</h3>
+                <button class="upgrade-btn" style="background: #00f3ff; width:100%; color:black; font-weight: bold;">INITIALIZE MATCHMAKING</button>
+            </div>
+            <div class="shop-section">
+                <h3>📅 STREAK RETRIEVAL LOCKER</h3>
+                <div id="dailyRewardBox" style="display: flex; gap: 5px; justify-content: space-between; margin-bottom: 10px;">
+                    <div id="day1" class="daily-day" style="font-size: 11px; text-align: center; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px;">Day 1<br>🪙50</div>
+                    <div id="day2" class="daily-day" style="font-size: 11px; text-align: center; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px;">Day 2<br>🪙100</div>
+                    <div id="day3" class="daily-day" style="font-size: 11px; text-align: center; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px;">Day 3<br>🪙150</div>
+                    <div id="day4" class="daily-day" style="font-size: 11px; text-align: center; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px;">Day 4<br>🪙200</div>
+                    <div id="day5" class="daily-day" style="font-size: 11px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid var(--neon-gold); padding: 5px; border-radius: 4px;">Day 5<br>🪙500</div>
+                </div>
+                <button id="claimRewardBtn" class="upgrade-btn" style="width:100%;">CLAIM LOOT</button>
+            </div>
+            
+            <button class="main-start-btn" id="startRunBtn">START RUN</button>
+        </div>
+
+        <div id="shop-panel" class="tab-content" style="display: none;">
+            <div class="shop-section">
+                <h3>🎭 SUIT COMPARTMENTS</h3>
+                <div class="skin-container" style="display: flex; gap: 10px; justify-content: space-between;">
+                    <div id="skin0" class="skin-card active" style="border: 1px solid var(--neon-blue); padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer;">STEALTH</div>
+                    <div id="skin1" class="skin-card locked" style="opacity: 0.5; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer;">BRONZE</div>
+                    <div id="skin2" class="skin-card locked" style="opacity: 0.5; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer;">NEON</div>
+                </div>
+            </div>
+            <div class="shop-section">
+                <h3>⚡ MODULE TUNING</h3>
+                <div class="upgrade-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-size: 13px;">🧲 Magnet Engine (<span id="magLvlText">Lvl 1</span>)</div>
+                    <button id="upgradeMagBtn" class="upgrade-btn">Upgrade 🪙100</button>
+                </div>
+                <div class="upgrade-row" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 13px;">🛹 Hoverboard Chassis (<span id="boardLvlText">Lvl 1</span>)</div>
+                    <button id="upgradeBoardBtn" class="upgrade-btn">Upgrade 🪙200</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameOver" class="menu-overlay" style="display: none; justify-content: center;">
+        <h1 style="color:#ff3344; letter-spacing: 3px;">WASTED / CRASHED</h1>
+        <p id="finalScore" style="font-size: 24px; color: gold; font-weight:bold; margin: 15px 0;">Score: 0</p>
+        <div class="shop-section" style="max-width:360px; width: 100%;">
+            <h3>🏆 TOP LEADERBOARD CLUSTER</h3>
+            <div id="leaderboardContainer"></div>
+        </div>
+        <button class="main-start-btn" onclick="window.location.reload();">RESPAWN</button>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script src="loader.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
